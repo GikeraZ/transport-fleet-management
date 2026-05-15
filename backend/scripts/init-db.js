@@ -42,6 +42,18 @@ async function initDatabase() {
       console.log('Database schema already exists, skipping.');
     }
 
+    console.log('Applying migration additions...');
+    try {
+      const migrationPath = path.join(__dirname, '../../database/migration_additions.sql');
+      if (fs.existsSync(migrationPath)) {
+        const migration = fs.readFileSync(migrationPath, 'utf8');
+        await pool.query(migration);
+        console.log('Migration additions applied.');
+      }
+    } catch (migErr) {
+      console.error('Migration warning (non-fatal):', migErr.message);
+    }
+
     const userCount = await pool.query('SELECT COUNT(*) FROM users');
     const needsSeed = parseInt(userCount.rows[0].count, 10) === 0;
 
