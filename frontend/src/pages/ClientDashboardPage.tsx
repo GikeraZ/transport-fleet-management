@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, CheckCircle, Clock, Plus, ArrowRight, XCircle, Navigation, User, AlertCircle, Sprout } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { MapPin, CheckCircle, Clock, Plus, ArrowRight, XCircle, Navigation, User, AlertCircle, Sprout, Wrench } from 'lucide-react'
 import { api } from '../utils/api'
 import { StatusBadge } from '../components/StatusBadge'
 import { StatCard } from '../components/StatCard'
@@ -27,6 +28,33 @@ export function ClientDashboardPage() {
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const socketRef = useRef<Socket | null>(null)
+
+  const [showMaintForm, setShowMaintForm] = useState(false)
+  const [maintSubmitting, setMaintSubmitting] = useState(false)
+  const [maintForm, setMaintForm] = useState({ vehicle_id: '', task_type: 'repair', description: '', scheduled_date: '' })
+
+  const { data: vehicles } = useQuery({
+    queryKey: ['vehicles'],
+    queryFn: () => api.get<{ success: boolean; data: { id: string; license_plate: string }[] }>('/vehicles'),
+    select: (res) => res.data || [],
+  })
+
+  const submitMaintRequest = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!maintForm.vehicle_id || !maintForm.scheduled_date) {
+      showToast('Please fill required fields', 'error'); return
+    }
+    setMaintSubmitting(true)
+    try {
+      const res = await api.post<{ success: boolean }>('/maintenance/client-request', maintForm)
+      if (res.success) {
+        showToast('Maintenance request submitted!', 'success')
+        setShowMaintForm(false)
+        setMaintForm({ vehicle_id: '', task_type: 'repair', description: '', scheduled_date: '' })
+      } else showToast('Failed to submit', 'error')
+    } catch { showToast('Failed to submit', 'error') }
+    finally { setMaintSubmitting(false) }
+  }
 
   const [formValues, setFormValues] = useState({
     pickup_location: '', dropoff_location: '', scheduled_departure: '',
@@ -135,14 +163,24 @@ export function ClientDashboardPage() {
             <p className="text-sm text-muted-foreground mt-1">Create and track your transport trip requests.</p>
           </div>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => { setFormValues({ pickup_location: '', dropoff_location: '', scheduled_departure: '', passenger_count: 1, notes: '', route_name: '' }); setShowForm(true) }}
-          className="btn-primary"
-        >
-          <Plus className="w-4 h-4" /> New Request
-        </motion.button>
+          <div className="flex gap-2">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => { setShowMaintForm(true) }}
+              className="btn-secondary"
+            >
+              <Wrench className="w-4 h-4" /> Request Repair
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => { setFormValues({ pickup_location: '', dropoff_location: '', scheduled_departure: '', passenger_count: 1, notes: '', route_name: '' }); setShowForm(true) }}
+              className="btn-primary"
+            >
+              <Plus className="w-4 h-4" /> New Request
+            </motion.button>
+          </div>
       </motion.div>
 
       {/* Stats */}
@@ -348,6 +386,69 @@ export function ClientDashboardPage() {
                           Submitting...
                         </span>
                       ) : 'Submit Request'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Maintenance Request Modal */}
+      <AnimatePresence>
+        {showMaintForm && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40" onClick={() => setShowMaintForm(false)} />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }} className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="w-full max-w-lg rounded-2xl border shadow-2xl" style={{ background: 'hsl(var(--card))' }}>
+                <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+                  <h2 className="text-lg font-semibold flex items-center gap-2"><Wrench className="w-5 h-5" /> Request Vehicle Repair</h2>
+                  <button onClick={() => setShowMaintForm(false)} className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                    <XCircle className="w-5 h-5" />
+                  </button>
+                </div>
+                <form onSubmit={submitMaintRequest} className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Vehicle *</label>
+                    <select value={maintForm.vehicle_id} onChange={e => setMaintForm({ ...maintForm, vehicle_id: e.target.value })} required
+                      className="input-field">
+                      <option value="">Select vehicle</option>
+                      {(vehicles || []).map((v: { id: string; license_plate: string }) => (
+                        <option key={v.id} value={v.id}>{v.license_plate}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Task Type</label>
+                    <select value={maintForm.task_type} onChange={e => setMaintForm({ ...maintForm, task_type: e.target.value })}
+                      className="input-field">
+                      <option value="repair">Repair</option>
+                      <option value="service">Service</option>
+                      <option value="inspection">Inspection</option>
+                      <option value="tire_change">Tire Change</option>
+                      <option value="engine">Engine</option>
+                      <option value="brake">Brake</option>
+                      <option value="electrical">Electrical</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Scheduled Date *</label>
+                    <input type="date" value={maintForm.scheduled_date} onChange={e => setMaintForm({ ...maintForm, scheduled_date: e.target.value })}
+                      className="input-field" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Description</label>
+                    <textarea value={maintForm.description} onChange={e => setMaintForm({ ...maintForm, description: e.target.value })} rows={3}
+                      className="input-field" placeholder="Describe the issue..." />
+                  </div>
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button type="button" onClick={() => setShowMaintForm(false)} className="btn-secondary">Cancel</button>
+                    <button type="submit" disabled={maintSubmitting} className="btn-primary">
+                      {maintSubmitting ? 'Submitting...' : 'Submit Request'}
                     </button>
                   </div>
                 </form>

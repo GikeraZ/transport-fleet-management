@@ -18,7 +18,7 @@ const vehicleSchema = {
 router.get('/', verifyToken, vehicleController.list);
 router.get('/:id', verifyToken, vehicleController.getById);
 router.post('/', verifyToken, authorize(['admin']), validateBody(vehicleSchema), vehicleController.create);
-router.put('/:id', verifyToken, authorize(['admin']), vehicleController.update);
+router.put('/:id', verifyToken, vehicleController.update);
 router.delete('/:id', verifyToken, authorize(['admin']), vehicleController.remove);
 
 module.exports = router;

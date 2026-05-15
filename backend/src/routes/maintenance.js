@@ -6,9 +6,10 @@ const router = express.Router();
 
 router.get('/', verifyToken, maintenanceController.list);
 router.get('/:id', verifyToken, maintenanceController.getById);
-router.post('/', verifyToken, authorize(['admin']), maintenanceController.create);
+router.post('/', verifyToken, authorize(['admin', 'mechanic']), maintenanceController.create);
 router.put('/:id', verifyToken, maintenanceController.update);
 router.delete('/:id', verifyToken, authorize(['admin']), maintenanceController.remove);
 router.get('/vehicle/:vehicleId', verifyToken, maintenanceController.vehicleHistory);
+router.post('/client-request', verifyToken, maintenanceController.clientRequest);
 
 module.exports = router;

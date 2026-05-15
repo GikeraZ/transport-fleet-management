@@ -21,6 +21,8 @@ interface VehicleRecord extends Record<string, unknown> {
   vin: string
   insurance_expiry: string
   registration_expiry: string
+  assigned_driver_id: string
+  assigned_driver_name: string
 }
 
 interface ServiceRecord {
@@ -41,6 +43,7 @@ const vehicleColumns: ColumnDef<VehicleRecord>[] = [
   { key: 'vehicle_type', header: 'Type', minWidth: 80 },
   { key: 'capacity', header: 'Capacity', minWidth: 90 },
   { key: 'status', header: 'Status', minWidth: 100 },
+  { key: 'assigned_driver_name', header: 'Assigned Driver', minWidth: 140 },
   { key: 'last_service_date', header: 'Last Service', minWidth: 120 },
   { key: 'next_service_date', header: 'Next Service', minWidth: 120 },
   { key: 'mileage', header: 'Mileage', minWidth: 90 },
@@ -73,8 +76,14 @@ export function VehiclesPage() {
     select: (res) => res.data || [],
   })
 
+  const { data: drivers } = useQuery({
+    queryKey: ['drivers'],
+    queryFn: () => api.get<{ success: boolean; data: { id: string; first_name: string; last_name: string }[] }>('/drivers'),
+    select: (res) => res.data || [],
+  })
+
   const form = useForm(
-    { license_plate: '', make: '', model: '', year: new Date().getFullYear(), vehicle_type: 'bus', capacity: 30, status: 'active', vin: '', mileage: 0, last_service_date: '', next_service_date: '', insurance_expiry: '', registration_expiry: '' },
+    { license_plate: '', make: '', model: '', year: new Date().getFullYear(), vehicle_type: 'bus', capacity: 30, status: 'active', vin: '', mileage: 0, last_service_date: '', next_service_date: '', insurance_expiry: '', registration_expiry: '', assigned_driver_id: '' },
     (values) => {
       const errors: Record<string, string> = {}
       if (!values.license_plate) errors.license_plate = 'Required'
@@ -141,6 +150,7 @@ export function VehiclesPage() {
       next_service_date: vehicle.next_service_date as string,
       insurance_expiry: vehicle.insurance_expiry as string,
       registration_expiry: vehicle.registration_expiry as string,
+      assigned_driver_id: vehicle.assigned_driver_id as string,
     })
     setShowModal(true)
   }
@@ -297,6 +307,16 @@ export function VehiclesPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Next Service</label>
               <input type="date" value={form.values.next_service_date as string} onChange={e => form.setValue('next_service_date', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Driver</label>
+              <select value={form.values.assigned_driver_id as string} onChange={e => form.setValue('assigned_driver_id', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">None</option>
+                {(drivers || []).map((d: { id: string; first_name: string; last_name: string }) => (
+                  <option key={d.id} value={d.id}>{d.first_name} {d.last_name}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Insurance Expiry</label>

@@ -5,7 +5,11 @@ exports.list = async (req, res) => {
   try {
     const { status, type, licensePlate, search, page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
-    let query = 'SELECT id, license_plate, make, model, year, vehicle_type, capacity, status, mileage, last_service_date, next_service_date, created_at FROM vehicles WHERE 1=1';
+    let query = `SELECT v.id, v.license_plate, v.make, v.model, v.year, v.vehicle_type, v.capacity, v.status, v.mileage, v.last_service_date, v.next_service_date, v.assigned_driver_id, v.created_at,
+                        CONCAT(u.first_name, ' ', u.last_name) as assigned_driver_name
+                 FROM vehicles v
+                 LEFT JOIN users u ON v.assigned_driver_id = u.id
+                 WHERE 1=1`;
     const values = [];
     let paramIndex = 1;
 
@@ -41,7 +45,10 @@ exports.list = async (req, res) => {
 
 exports.getById = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM vehicles WHERE id = $1', [req.params.id]);
+    const result = await pool.query(
+      `SELECT v.*, CONCAT(u.first_name, ' ', u.last_name) as assigned_driver_name
+       FROM vehicles v LEFT JOIN users u ON v.assigned_driver_id = u.id
+       WHERE v.id = $1`, [req.params.id]);
     if (!result.rows.length) return res.status(404).json({ success: false, error: 'Vehicle not found' });
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
@@ -52,7 +59,7 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { license_plate, make, model, year, vehicle_type, capacity, vin } = req.body;
+    const { license_plate, make, model, year, vehicle_type, capacity, vin, assigned_driver_id } = req.body;
     if (!license_plate || !make || !model || !vehicle_type) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
@@ -61,8 +68,8 @@ exports.create = async (req, res) => {
     if (existing.rows.length > 0) return res.status(400).json({ success: false, error: 'License plate already exists' });
 
     const result = await pool.query(
-      `INSERT INTO vehicles (license_plate, make, model, year, vehicle_type, capacity, vin) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [license_plate, make, model, year || null, vehicle_type, capacity || null, vin || null]
+      `INSERT INTO vehicles (license_plate, make, model, year, vehicle_type, capacity, vin, assigned_driver_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [license_plate, make, model, year || null, vehicle_type, capacity || null, vin || null, assigned_driver_id || null]
     );
     await auditLog('vehicles', result.rows[0].id, 'INSERT', req.user.userId, req.body);
     res.status(201).json({ success: true, data: result.rows[0] });
@@ -75,7 +82,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const allowedFields = ['license_plate', 'make', 'model', 'year', 'vehicle_type', 'capacity', 'status', 'vin', 'mileage', 'last_service_date', 'next_service_date', 'insurance_expiry', 'registration_expiry'];
+    const allowedFields = ['license_plate', 'make', 'model', 'year', 'vehicle_type', 'capacity', 'status', 'vin', 'mileage', 'last_service_date', 'next_service_date', 'insurance_expiry', 'registration_expiry', 'assigned_driver_id'];
     const fields = [];
     const values = [id];
     let paramIndex = 2;

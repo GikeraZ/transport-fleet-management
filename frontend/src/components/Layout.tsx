@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Car, Users, Wrench, MapPin, Settings, Menu, X, User,
-  FileText, Shield, Sun, Moon, ChevronLeft, Activity, Package
+  FileText, Shield, Sun, Moon, ChevronLeft, Activity, Package, Droplets
 } from 'lucide-react'
 import { NotificationDropdown } from './NotificationDropdown'
 import { UserProfileDropdown } from './UserProfileDropdown'
@@ -21,6 +21,7 @@ const adminNavItems: MenuItem[] = [
   { path: '/admin/maintenance', label: 'Maintenance', icon: Settings },
   { path: '/admin/inventory', label: 'Inventory', icon: Package },
   { path: '/admin/reports', label: 'Reports', icon: FileText },
+  { path: '/admin/fuel', label: 'Fuel', icon: Droplets },
   { path: '/admin/roles', label: 'Roles', icon: Shield },
   { path: '/admin/users', label: 'Users', icon: Users },
 ]

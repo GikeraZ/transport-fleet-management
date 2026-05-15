@@ -126,6 +126,33 @@ exports.update = async (req, res) => {
   }
 };
 
+exports.clientRequest = async (req, res) => {
+  try {
+    const { vehicle_id, task_type, description, scheduled_date } = req.body;
+    if (!vehicle_id || !task_type || !scheduled_date) {
+      return res.status(400).json({ success: false, error: 'vehicle_id, task_type, and scheduled_date are required' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO maintenance_tasks (vehicle_id, task_type, description, scheduled_date, status, created_by)
+       VALUES ($1, $2, $3, $4, 'scheduled', $5) RETURNING *`,
+      [vehicle_id, task_type, description || '', scheduled_date, req.user.userId]
+    );
+
+    await pool.query(
+      `INSERT INTO notifications (recipient_id, title, message, type, related_entity_type, related_entity_id)
+       VALUES ((SELECT id FROM users WHERE role_id = (SELECT id FROM roles WHERE name = 'admin') LIMIT 1),
+               'Maintenance Request', $1, 'maintenance_reminder', 'maintenance_task', $2)`,
+      [`Client requested: ${task_type} for vehicle`, result.rows[0].id]
+    ).catch(e => console.error('Notification error:', e));
+
+    res.status(201).json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error('Client maintenance request error:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
 exports.remove = async (req, res) => {
   try {
     const result = await pool.query('DELETE FROM maintenance_tasks WHERE id = $1 RETURNING *', [req.params.id]);

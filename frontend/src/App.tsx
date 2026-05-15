@@ -23,6 +23,7 @@ import { ProfilePage } from './pages/ProfilePage'
 import { InventoryPage } from './pages/InventoryPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { RoleManagementPage } from './pages/RoleManagementPage'
+import { FuelPage } from './pages/FuelPage'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { NotificationProvider, useNotifications } from './contexts/NotificationContext'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -144,6 +145,7 @@ function AppRoutes() {
         <Route path="/admin/inventory" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><InventoryPage /></ProtectedRoute>} />
         <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><ReportsPage /></ProtectedRoute>} />
         <Route path="/admin/roles" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><RoleManagementPage /></ProtectedRoute>} />
+        <Route path="/admin/fuel" element={<ProtectedRoute allowedRoles={['admin', 'superadmin']}><FuelPage /></ProtectedRoute>} />
 
         <Route path="/driver/trips" element={<ProtectedRoute allowedRoles={['driver']}><TripsPage isDriverView /></ProtectedRoute>} />
         <Route path="/mechanic/tasks" element={<ProtectedRoute allowedRoles={['mechanic']}><MaintenancePage isMechanicView /></ProtectedRoute>} />

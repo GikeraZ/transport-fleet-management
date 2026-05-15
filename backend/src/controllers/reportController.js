@@ -53,3 +53,57 @@ exports.tripAnalytics = async (req, res) => {
     res.status(500).json({ success: false, error: 'Server error' });
   }
 };
+
+exports.driverPerformance = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        u.id, u.first_name, u.last_name, u.email,
+        COUNT(DISTINCT t.id) as total_trips,
+        COUNT(DISTINCT CASE WHEN t.status = 'completed' THEN t.id END) as completed_trips,
+        COUNT(DISTINCT CASE WHEN t.status = 'cancelled' THEN t.id END) as cancelled_trips,
+        COUNT(DISTINCT CASE WHEN t.actual_departure <= t.scheduled_departure THEN t.id END) as on_time_departures,
+        ROUND(COUNT(DISTINCT CASE WHEN t.status = 'completed' THEN t.id END)::decimal / NULLIF(COUNT(DISTINCT t.id), 0) * 100, 1) as completion_rate,
+        ROUND(AVG(CASE WHEN t.status = 'completed' THEN EXTRACT(EPOCH FROM (t.actual_arrival - t.scheduled_arrival)) / 60 END)) as avg_late_minutes
+      FROM users u
+      JOIN drivers d ON u.id = d.id
+      LEFT JOIN trips t ON t.driver_id = d.id AND t.status != 'available'
+      WHERE u.role_id = (SELECT id FROM roles WHERE name = 'driver')
+      GROUP BY u.id, u.first_name, u.last_name, u.email
+      ORDER BY completed_trips DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('Driver performance error:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
+exports.operationalSummary = async (req, res) => {
+  try {
+    const [tripStats, vehicleStats, maintStats, fuelStats] = await Promise.all([
+      pool.query(`SELECT
+        COUNT(*) as total_trips,
+        COUNT(*) FILTER (WHERE status = 'completed') as completed_trips,
+        COUNT(*) FILTER (WHERE status = 'active' OR status = 'taken' OR status = 'started' OR status = 'on_route') as active_trips,
+        COUNT(*) FILTER (WHERE status = 'cancelled') as cancelled_trips
+      FROM trips`),
+      pool.query(`SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE status = 'active') as active_vehicles,
+        COUNT(*) FILTER (WHERE status = 'under_maintenance') as in_maintenance FROM vehicles`),
+      pool.query(`SELECT COUNT(*) as pending_tasks FROM maintenance_tasks WHERE status NOT IN ('completed', 'cancelled')`),
+      pool.query(`SELECT COALESCE(SUM(cost), 0) as total_fuel_cost, COALESCE(SUM(liters), 0) as total_liters FROM fuel_usage`),
+    ]);
+    res.json({
+      success: true,
+      data: {
+        trips: tripStats.rows[0],
+        vehicles: vehicleStats.rows[0],
+        maintenance: maintStats.rows[0],
+        fuel: fuelStats.rows[0],
+      }
+    });
+  } catch (err) {
+    console.error('Operational summary error:', err);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+};

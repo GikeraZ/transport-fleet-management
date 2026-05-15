@@ -187,6 +187,7 @@ const inventoryRoutes = require('./src/routes/inventory');
 const notificationRoutes = require('./src/routes/notifications');
 const reportRoutes = require('./src/routes/reports');
 const roleRoutes = require('./src/routes/roles');
+const fuelRoutes = require('./src/routes/fuel');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -199,6 +200,7 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/fuel', fuelRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
