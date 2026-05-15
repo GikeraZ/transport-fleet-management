@@ -43,9 +43,12 @@ async function initDatabase() {
     }
 
     const userCount = await pool.query('SELECT COUNT(*) FROM users');
-    if (parseInt(userCount.rows[0].count, 10) === 0) {
+    const needsSeed = parseInt(userCount.rows[0].count, 10) === 0;
+
+    await pool.end();
+
+    if (needsSeed) {
       console.log('Seeding database with initial data...');
-      pool.end();
       require('../src/utils/seed');
       return;
     }
@@ -54,8 +57,7 @@ async function initDatabase() {
   } catch (err) {
     console.error('Database initialization error:', err.message);
     console.error('Server will start, but DB queries may fail.');
-  } finally {
-    await pool.end();
+    await pool.end().catch(() => {});
   }
 }
 
