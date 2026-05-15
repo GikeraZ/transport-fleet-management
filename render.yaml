@@ -23,26 +23,15 @@ services:
         value: 24h
       - key: JWT_REFRESH_EXPIRE
         value: 7d
+      # Update these with your actual Vercel URL after deploying
       - key: FRONTEND_URL
-        value: https://fleet-management-frontend.onrender.com
+        value: https://transport-fleet-management.vercel.app
       - key: CLIENT_URL
-        value: https://fleet-management-frontend.onrender.com
+        value: https://transport-fleet-management.vercel.app
       - key: DB_POOL_MAX
         value: 10
       - key: DB_POOL_MIN
         value: 2
-
-  - type: web
-    name: fleet-management-frontend
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
-    envVars:
-      - key: VITE_API_BASE_URL
-        value: https://fleet-management-api.onrender.com/api
-      - key: VITE_SOCKET_URL
-        value: https://fleet-management-api.onrender.com
 
 databases:
   - name: fleet-management-db
