@@ -1,13 +1,10 @@
-import { useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts'
 import { api } from '../utils/api'
 import { useQuery } from '@tanstack/react-query'
 
 const COLORS = ['#3B82F6', '#F59E0B', '#10B981', '#EF4444', '#8B5CF6', '#EC4899']
 
 export function ReportsPage() {
-  const [period, setPeriod] = useState('6months')
-
   const { data: tripAnalytics } = useQuery({
     queryKey: ['report-trips'],
     queryFn: () => api.get<{ success: boolean; data: { status: { status: string; count: number }[]; daily: { day: string; trip_count: number; total_passengers: number }[]; topDrivers: { driver_name: string; trip_count: number }[] } }>('/reports/trips/analytics'),
