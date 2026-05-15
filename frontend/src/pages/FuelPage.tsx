@@ -110,11 +110,11 @@ export function FuelPage() {
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Total Cost</p>
-<p className="text-2xl font-bold text-gray-900 mt-1">KSh {Number(fuelStats.summary.total_cost).toLocaleString()}</p>
-
+            <p className="text-2xl font-bold text-gray-900 mt-1">{'KSh ' + Number(fuelStats.summary.total_cost).toLocaleString()}</p>
+          </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <p className="text-xs text-gray-500 uppercase tracking-wide">Avg Cost/Liter</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">KSh {Number(fuelStats.summary.avg_cost_per_liter || 0).toFixed(2)}</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{'KSh ' + Number(fuelStats.summary.avg_cost_per_liter || 0).toFixed(2)}</p>
           </div>
         </div>
       )}
@@ -140,7 +140,7 @@ export function FuelPage() {
                 <td className="px-4 py-3 font-medium">{r.license_plate}</td>
                 <td className="px-4 py-3 text-gray-600">{r.driver_name || '-'}</td>
                 <td className="px-4 py-3 text-right">{Number(r.liters).toFixed(1)}</td>
-                <td className="px-4 py-3 text-right">KSh {Number(r.cost).toFixed(2)}</td>
+                <td className="px-4 py-3 text-right">{'KSh ' + Number(r.cost).toFixed(2)}</td>
                 <td className="px-4 py-3 text-right text-gray-500">{r.mileage_at_fill ? `${r.mileage_at_fill.toLocaleString()} km` : '-'}</td>
                 <td className="px-4 py-3"><span className="capitalize">{r.fuel_type}</span></td>
                 <td className="px-4 py-3 text-gray-500">{r.station_name || '-'}</td>

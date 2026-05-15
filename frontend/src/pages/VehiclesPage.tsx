@@ -357,7 +357,7 @@ export function VehiclesPage() {
                   <div className="flex items-center gap-4 mt-1 text-xs text-gray-400">
                     <span>{s.mechanic_name}</span>
                     <span>{new Date(s.scheduled_date).toLocaleDateString()}</span>
-                    {s.cost > 0 && <span>KSh {Number(s.cost).toFixed(2)}</span>}
+                    {s.cost > 0 && <span>{'KSh ' + Number(s.cost).toFixed(2)}</span>}
                   </div>
                 </div>
               </div>
