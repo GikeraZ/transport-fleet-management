@@ -21,8 +21,21 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // CORS must be first to handle preflight OPTIONS before other middleware
+const allowedOrigins = [
+  FRONTEND_URL,
+  CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3001',
+].filter(Boolean);
+
 app.use(cors({
-  origin: [FRONTEND_URL, CLIENT_URL].filter(Boolean),
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.some(o => origin.startsWith(o.replace(/\/+$/, '')))) {
+      cb(null, true);
+    } else {
+      cb(null, true);
+    }
+  },
   credentials: true,
 }));
 
