@@ -79,7 +79,7 @@ export function ReportsPage() {
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <p className="text-xs text-gray-500 uppercase">Fuel Cost</p>
-            <p className="text-2xl font-bold mt-1">${Number(operational.fuel.total_fuel_cost).toLocaleString()}</p>
+            <p className="text-2xl font-bold mt-1">KSh {Number(operational.fuel.total_fuel_cost).toLocaleString()}</p>
             <p className="text-xs text-gray-400">{Number(operational.fuel.total_liters).toFixed(0)} L total</p>
           </div>
         </div>
