@@ -1,7 +1,7 @@
 import type { AuthResponse, User, LoginFormData, RegisterFormData, ResetPasswordFormData, ForgotPasswordFormData } from '../types'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001'
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || ''
 
 export { SOCKET_URL }
 

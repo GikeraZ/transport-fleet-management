@@ -104,7 +104,7 @@ export default defineConfig(({ mode }) => {
     // VITE_API_BASE_URL used by frontend code for fetch calls (relative path through proxy)
     define: {
       'import.meta.env.VITE_API_BASE_URL': JSON.stringify(env.VITE_API_BASE_URL || '/api'),
-      'import.meta.env.VITE_SOCKET_URL': JSON.stringify(env.VITE_SOCKET_URL || 'http://localhost:3001'),
+      'import.meta.env.VITE_SOCKET_URL': JSON.stringify(env.VITE_SOCKET_URL || ''),
     },
   }
 })
