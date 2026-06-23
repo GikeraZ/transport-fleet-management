@@ -5,6 +5,16 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || ''
 
 export { SOCKET_URL }
 
+function getNetworkError(error: unknown): string {
+  if (error instanceof TypeError && error.message === 'Failed to fetch') {
+    return 'Cannot reach the server. Make sure the backend is running on port 3001.'
+  }
+  if (error instanceof DOMException && error.name === 'AbortError') {
+    return 'Request timed out. The server might be overloaded.'
+  }
+  return 'Network error. Please check your connection and ensure the backend server is running.'
+}
+
 const getAccessToken = () => localStorage.getItem('accessToken')
 const getRefreshToken = () => localStorage.getItem('refreshToken')
 
@@ -85,7 +95,7 @@ export const authApi = {
       }
       return result
     } catch (error) {
-      return { success: false, error: 'Network error. Please check your connection.' }
+      return { success: false, error: getNetworkError(error) }
     }
   },
   async register(data: RegisterFormData): Promise<AuthResponse> {
@@ -103,7 +113,7 @@ export const authApi = {
       }
       return result
     } catch (error) {
-      return { success: false, error: 'Network error. Please check your connection.' }
+      return { success: false, error: getNetworkError(error) }
     }
   },
   async forgotPassword(data: ForgotPasswordFormData): Promise<AuthResponse> {
@@ -114,8 +124,8 @@ export const authApi = {
         body: JSON.stringify(data),
       })
       return await res.json()
-    } catch {
-      return { success: false, error: 'Network error. Please check your connection.' }
+    } catch (error) {
+      return { success: false, error: getNetworkError(error) }
     }
   },
   async resetPassword(token: string, data: ResetPasswordFormData): Promise<AuthResponse> {
@@ -126,16 +136,16 @@ export const authApi = {
         body: JSON.stringify(data),
       })
       return await res.json()
-    } catch {
-      return { success: false, error: 'Network error. Please check your connection.' }
+    } catch (error) {
+      return { success: false, error: getNetworkError(error) }
     }
   },
   async changePassword(data: { currentPassword: string; newPassword: string }): Promise<AuthResponse> {
     try {
       const res = await authFetch(`${API_BASE_URL}/auth/change-password`, { method: 'POST', body: JSON.stringify(data) })
       return await res.json()
-    } catch {
-      return { success: false, error: 'Network error. Please check your connection.' }
+    } catch (error) {
+      return { success: false, error: getNetworkError(error) }
     }
   },
   async logout(): Promise<AuthResponse> {
@@ -160,9 +170,9 @@ export const authApi = {
         localStorage.setItem('accessToken', result.data.accessToken)
       }
       return result
-    } catch {
+    } catch (error) {
       clearTokens()
-      return { success: false, error: 'Network error' }
+      return { success: false, error: getNetworkError(error) }
     }
   },
 }

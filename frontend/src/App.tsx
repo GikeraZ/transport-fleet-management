@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { LoadingScreen } from './components/LoadingScreen'
+import { BackendStatusBanner } from './components/BackendStatusBanner'
 import { VehiclesPage } from './pages/VehiclesPage'
 import { DriversPage } from './pages/DriversPage'
 import { MechanicsPage } from './pages/MechanicsPage'
@@ -174,6 +175,7 @@ export default function App() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
+            <BackendStatusBanner />
             <AuthProvider>
               <NotificationProvider>
                 <AppRoutes />
